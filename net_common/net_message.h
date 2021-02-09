@@ -25,6 +25,46 @@ namespace icd {
 				os << "ID: " << int(msg.header.id) << " size: " << msg.header.size;
 				return os;
 			}
+
+			// push data into message buffer serially
+			template<typename DataType>
+			friend message<T>& operator << (message<T>& msg, const DataType& data) {
+				static_assert(std::is_standard_layout<DataType>::value, "Message Stream Error: data too complex");
+
+				size_t i = msg.body.size();
+				msg.body.resize(msg.body.size() + sizeof(DataType));
+				std::memcpy(msg.body.data() + i, &data, sizeof(DataType));
+				msg.header.size = msg.size();
+
+				return msg;
+			}
+
+			template<typename DataType>
+			friend message<T>& operator >> (message<T>& msg, DataType& data) {
+				static_assert(std::is_standard_layout<DataType>::value, "Message Stream Error: data too complex");
+
+				size_t i = msg.body.size() - sizeof(DataType);
+				std::memcpy(&data, msg.body.data() + i, sizeof(DataType));
+				msg.body.resize(i);
+				msg.header.size = msg.size();
+
+				return msg;
+			}
+		};
+
+		// forward declare
+		template <typename T>
+		class connection;
+
+		template<typename T>
+		struct owned_message {
+			std::shared_ptr<connection<T>> remote = nullptr;
+			message<T> msg;
+
+			friend std::ostream& operator << (std::ostream& os, const message<T>& msg) {
+				os << msg.msg;
+				return os;
+			}
 		};
 	}
 }
