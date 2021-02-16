@@ -112,6 +112,12 @@ namespace icd {
 			}
 
 			void update(size_t nMaxMessages = -1) {
+
+				if (q_size != m_messagesIn.count()) {
+					std::cout << "QUEUE SIZE: " << m_messagesIn.count() << "\n";
+					q_size = m_messagesIn.count();
+				}
+
 				size_t nMessageCount = 0;
 				while (nMessageCount < nMaxMessages && !m_messagesIn.empty()) {
 					auto msg = m_messagesIn.pop_front();
@@ -149,9 +155,8 @@ namespace icd {
 			asio::ip::tcp::acceptor m_asioAcceptor;
 
 			uint32_t IDCounter = 10000;
+
+			size_t q_size = 0;
 		};
 	}
 }
-
-
-// PART 2 13:33 ----------------

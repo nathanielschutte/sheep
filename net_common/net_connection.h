@@ -94,6 +94,9 @@ namespace icd {
 							m_socket.close();
 						}
 					});
+				if (m_ownerType == owner::server) {
+					std::cout << "WAITING ON MESSAGE\n";
+				}
 			}
 
 			void readBody() {
@@ -132,7 +135,7 @@ namespace icd {
 			}
 
 			void writeBody() {
-				asio::async_write(m_socket, asio::buffer(&m_messagesOut.front().header, sizeof(message_header<T>)),
+				asio::async_write(m_socket, asio::buffer(m_messagesOut.front().body.data(), m_messagesOut.front().body.size()),
 					[this](std::error_code ec, std::size_t length) {
 						if (!ec) {
 							m_messagesOut.pop_front();

@@ -25,10 +25,15 @@ protected:
 		
 	}
 
-	virtual bool clientMessage(std::shared_ptr<icd::net::connection<MessageTypes>> client,
-		icd::net::message<MessageTypes>) {
+	virtual void clientMessage(std::shared_ptr<icd::net::connection<MessageTypes>> client, icd::net::message<MessageTypes>& msg) {
 		
-		return true;
+		switch (msg.header.id) {
+			case MessageTypes::ServerPing:
+				std::cout << "[" << client->getID() << "] Server ping\n";
+				client->send(msg);
+			break;
+		}
+
 	}
 };
 

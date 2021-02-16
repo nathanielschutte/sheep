@@ -23,7 +23,7 @@ namespace icd {
 
 			void push_back(const T& item) {
 				std::scoped_lock lock(muxQueue);
-				deqQueue.emplace_back(std::move(item));
+				deqQueue.emplace_back(std::move(item));        
 			}
 
 			void push_front(const T& item) {
