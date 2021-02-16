@@ -21,13 +21,14 @@ protected:
 		return true;
 	}
 
-	virtual bool clientDisconnect(std::shared_ptr<icd::net::connection<MessageTypes>> client) {
+	virtual void clientDisconnect(std::shared_ptr<icd::net::connection<MessageTypes>> client) {
 		
 	}
 
 	virtual bool clientMessage(std::shared_ptr<icd::net::connection<MessageTypes>> client,
 		icd::net::message<MessageTypes>) {
 		
+		return true;
 	}
 };
 

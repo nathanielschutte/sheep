@@ -61,7 +61,7 @@ namespace icd {
 			std::shared_ptr<connection<T>> remote = nullptr;
 			message<T> msg;
 
-			friend std::ostream& operator << (std::ostream& os, const message<T>& msg) {
+			friend std::ostream& operator << (std::ostream& os, const owned_message<T>& msg) {
 				os << msg.msg;
 				return os;
 			}

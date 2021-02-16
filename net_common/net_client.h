@@ -1,19 +1,14 @@
 #pragma once
 
 #include "net_common.h"
-#include "net_tsqueue.h"
-#include "net_message.h"
-#include "net_connection.h"
 
 namespace icd {
 	namespace net {
 
 		template<typename T>
 		class client_interface {
-
-			client_interface() : m_socket(m_context) {
-
-			}
+		public:
+			client_interface() {}
 
 			virtual ~client_interface() {
 				disconnect();
@@ -23,20 +18,22 @@ namespace icd {
 			bool connect(const std::string& host, const uint16_t port) {
 
 				try {
-					// create connection
-					m_connection = std::make_unique<connection<T>>();
 
 					asio::ip::tcp::resolver resolver(m_context);
-					m_endpoints = resolver.resolve(host, std::to_string(port));
+					asio::ip::tcp::resolver::results_type endpoints = resolver.resolve(host, std::to_string(port));
 
-					m_connection->connectToServer(m_endpoints);
+					// create connection
+					m_connection = std::make_unique<connection<T>>(connection<T>::owner::client, 
+						m_context, asio::ip::tcp::socket(m_context), m_messagesIn);
+
+					m_connection->connectToServer(endpoints);
 
 					thrContext = std::thread([this]() { m_context.run(); });
 
 
 				}
 				catch (std::exception& e) {
-					std::cerr << "Client Exception: " << e.what() << "\n";
+					std::cerr << "Client exception: " << e.what() << "\n";
 					return false;
 				}
 
@@ -52,6 +49,8 @@ namespace icd {
 
 				if (thrContext.joinable())
 					thrContext.join();
+
+				m_connection.release();
 			}
 
 			bool isConnected() {
@@ -62,6 +61,14 @@ namespace icd {
 					return false;
 			}
 
+		public:
+
+			void send(const message<T>& msg) {
+				if (isConnected()) {
+					m_connection->send(msg);
+				}
+			}
+
 			tsqueue<owned_message<T>>& incoming() {
 				return m_messagesIn;
 			}
@@ -69,7 +76,6 @@ namespace icd {
 		protected:
 			asio::io_context m_context;
 			std::thread thrContext;
-			asio::ip::tcp::socket m_socket;
 			std::unique_ptr<connection<T>> m_connection;
 
 		private:

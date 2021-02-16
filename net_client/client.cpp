@@ -2,31 +2,22 @@
 #include <icd_net.h>
 
 enum class MessageTypes : uint32_t {
-	FireBullet,
-	MovePlayer
+	ServerAccept,
+	ServerDeny,
+	ServerPing,
+	MessageAll,
+	ServerMessage,
 };
+
+class SampleClient : public icd::net::client_interface<MessageTypes> {
+
+};
+
+
 
 int main() {
 
-	icd::net::message<MessageTypes> msg;
-	msg.header.id = MessageTypes::FireBullet;
-
-	int a = 1;
-	bool b = true;
-	float c = 3.14;
-
-	struct {
-		float x;
-		float y;
-	} d[5];
-
-	msg << a << b << c << d;
-
-	a = 0;
-	b = false;
-	c = 0;
-
-	msg >> d >> c >> b >> a;
-
+	SampleClient c;
+	c.connect("127.0.0.1", 60000);
 	return 0;
 }

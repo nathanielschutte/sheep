@@ -50,24 +50,24 @@ namespace icd {
 				m_asioAcceptor.async_accept(
 					[this](std::error_code ec, asio::ip::tcp::socket socket) {
 						if (!ec) {
-							std::cout << "[SERVER] New conection: " < socket.remote_endpoint() << "\n";
+							std::cout << "[SERVER] New conection: " << socket.remote_endpoint() << "\n";
 
-							/*std::shared_ptr<connection<T>> new_conn = std::make_shared<connection<T>>(connection<T>::owner::server,
-								m_asioContext, std::move(socket), m_messagesIn);*/
+							std::shared_ptr<connection<T>> new_conn = std::make_shared<connection<T>>(connection<T>::owner::server,
+								m_asioContext, std::move(socket), m_messagesIn);
 
-							/*if (clientConnect(new_conn)) {
+							if (clientConnect(new_conn)) {
 
 								m_deqConns.push_back(std::move(new_conn));
-								m_deqConns.back()->connectToClient(nIDCounter++);
+								m_deqConns.back()->connectToClient(IDCounter++);
 								std::cout << "[" << m_deqConns.back()->getID() << "] Connection approved\n";
 
 							}
 							else {
 								std::cout << "[-----] Connection denied\n";
-							}*/
+							}
 						}
 						else {
-							std::cout << "[SERVER] New connection error: " < ec.message() << "\n";
+							std::cout << "[SERVER] New connection error: " << ec.message() << "\n";
 						}
 
 						// re-prime asio context for next connection
@@ -128,12 +128,12 @@ namespace icd {
 				return false;
 			}
 
-			virtual bool clientDisconnect(std::shared_ptr<connection<T>> client) {
+			virtual void clientDisconnect(std::shared_ptr<connection<T>> client) {
 
 			}
 
 			virtual void clientMessage(std::shared_ptr<connection<T>> client, message<T>& msg) {
-
+				
 			}
 
 		protected:
