@@ -27,7 +27,7 @@ namespace icd {
 			asio::io_context& m_asioContext;
 
 			tsqueue<message<T>> m_messagesOut;
-			tsqueue<owned_message>& m_messagesIn;
+			tsqueue<owned_message<T>>& m_messagesIn;
 		};
 	}
 }

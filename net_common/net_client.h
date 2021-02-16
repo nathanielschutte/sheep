@@ -7,6 +7,7 @@
 
 namespace icd {
 	namespace net {
+
 		template<typename T>
 		class client_interface {
 
@@ -56,9 +57,9 @@ namespace icd {
 			bool isConnected() {
 				if (m_connection) {
 					return m_connection->isConnected();
+				}
 				else
 					return false;
-				}
 			}
 
 			tsqueue<owned_message<T>>& incoming() {

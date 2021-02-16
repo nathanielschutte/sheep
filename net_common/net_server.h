@@ -47,15 +47,79 @@ namespace icd {
 
 			// ASYNC
 			void waitForClientConnection() {
+				m_asioAcceptor.async_accept(
+					[this](std::error_code ec, asio::ip::tcp::socket socket) {
+						if (!ec) {
+							std::cout << "[SERVER] New conection: " < socket.remote_endpoint() << "\n";
 
+							/*std::shared_ptr<connection<T>> new_conn = std::make_shared<connection<T>>(connection<T>::owner::server,
+								m_asioContext, std::move(socket), m_messagesIn);*/
+
+							/*if (clientConnect(new_conn)) {
+
+								m_deqConns.push_back(std::move(new_conn));
+								m_deqConns.back()->connectToClient(nIDCounter++);
+								std::cout << "[" << m_deqConns.back()->getID() << "] Connection approved\n";
+
+							}
+							else {
+								std::cout << "[-----] Connection denied\n";
+							}*/
+						}
+						else {
+							std::cout << "[SERVER] New connection error: " < ec.message() << "\n";
+						}
+
+						// re-prime asio context for next connection
+						waitForClientConnection();
+					});
 			}
 
 			void messageClient(std::shared_ptr<connection<T>> client, const message<T>& msg) {
 
+				if (client && client->isConnected()) {
+					client->send(msg);
+				}
+
+				// assume client should be disconnected
+				else {
+					clientDisconnect(client);
+					client.reset();
+					m_deqConns.erase(
+						std::remove(m_deqConns.begin(), m_deqConns.end(), client), m_deqConns);
+				}
 			}
 
 			void messageAllClients(const message<T>& msg, std::shared_ptr<connection<T>> ignore = nullptr) {
+				bool bInvalidClient = false;
+				
+				for (auto& client : m_deqConns) {
+					if (client && client->isConnected()) {
+						if (client != ignore)
+							client->send(msg);
+					}
 
+					else {
+						clientDisconnect(client);
+						client.reset();
+						bInvalidClient = true;
+					}
+				}
+
+				if (bInvalidClient)
+					m_deqConns.erase(
+						std::remove(m_deqConns.begin(), m_deqConns.end(), nullptr), m_deqConns);
+			}
+
+			void update(size_t nMaxMessages = -1) {
+				size_t nMessageCount = 0;
+				while (nMessageCount < nMaxMessages && !m_messagesIn.empty()) {
+					auto msg = m_messagesIn.pop_front();
+
+					clientMessage(msg.remote, msg.msg);
+
+					nMessageCount++;
+				}
 			}
 
 		protected:
@@ -75,6 +139,9 @@ namespace icd {
 		protected:
 
 			tsqueue<owned_message<T>> m_messagesIn;
+
+			// contains shared pointers to user connections
+			std::deque<std::shared_ptr<connection<T>>> m_deqConns;
 
 			asio::io_context m_asioContext;
 			std::thread m_threadContext;
